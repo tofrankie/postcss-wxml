@@ -1,51 +1,51 @@
-import type { Root, Rule } from 'postcss'
-import type { WxmlRootMeta } from './types'
+import type { Document, Root } from 'postcss'
+import type { WxmlDocumentMeta } from './types'
 import postcss from 'postcss'
 
 type StringifyNode = Parameters<typeof postcss.stringify>[0]
 type StringifyBuilder = Parameters<typeof postcss.stringify>[1]
+type RootWithId = Root & { raws: { postcssWxmlRootId?: number } }
 
-function serializeRuleToStyleValue(rule: Rule): string {
-  const decls = rule.nodes?.filter(node => node.type === 'decl') ?? []
-  if (decls.length === 1) {
-    const onlyDecl = decls[0] as any
-    if (/^_+wxml_inline_style__$/.test(onlyDecl.prop)) {
-      return onlyDecl.value
-    }
-  }
+function serializeRootToStyleValue(root: Root): string {
+  const decls = root.nodes?.filter(node => node.type === 'decl') ?? []
 
   return decls
-    .map((declNode: any) => `${declNode.prop}: ${declNode.value};`)
+    .map((declNode: { prop: string; value: string }) => `${declNode.prop}: ${declNode.value};`)
     .join(' ')
     .trim()
 }
 
-function stringifyWxmlFromRoot(root: Root, meta: WxmlRootMeta): string {
+function stringifyWxmlFromDocument(document: Document, meta: WxmlDocumentMeta): string {
   const { source, entries } = meta
+  const rootsById = new Map<number, Root>()
+  document.nodes.forEach(node => {
+    if (node.type !== 'root') return
+    const rootId = (node as RootWithId).raws?.postcssWxmlRootId
+    if (typeof rootId === 'number') rootsById.set(rootId, node as Root)
+  })
+
   let result = ''
   let cursor = 0
 
-  for (const entry of entries) {
-    const rule = root.nodes.find(
-      node => node.type === 'rule' && (node as Rule).selector === entry.selector
-    ) as Rule | undefined
-    const replacement = rule ? serializeRuleToStyleValue(rule) : entry.originalValue
+  entries.forEach(entry => {
+    const fragmentRoot = rootsById.get(entry.rootId)
+    const replacement = fragmentRoot ? serializeRootToStyleValue(fragmentRoot) : entry.originalValue
 
     result += source.slice(cursor, entry.startOffset)
     result += replacement
     cursor = entry.endOffset
-  }
+  })
 
   result += source.slice(cursor)
   return result
 }
 
 export function stringify(node: StringifyNode, builder: StringifyBuilder): void {
-  if ((node as any).type === 'root') {
-    const root = node as Root
-    const meta = (root.raws as any).postcssWxml as WxmlRootMeta | undefined
+  if ((node as { type: string }).type === 'document') {
+    const document = node as Document
+    const meta = (document.raws as unknown as { postcssWxml?: WxmlDocumentMeta }).postcssWxml
     if (meta?.source && Array.isArray(meta.entries)) {
-      builder(stringifyWxmlFromRoot(root, meta), root)
+      builder(stringifyWxmlFromDocument(document, meta), document)
       return
     }
   }

@@ -1,9 +1,10 @@
 import type { MustacheProcessResult, MustacheToken } from './types'
 
 const MUSTACHE_RE = /\{\{[\s\S]*?\}\}/g
-const INLINE_STYLE_PROP = '__wxml_inline_style__'
+const PLACEHOLDER_PREFIX = `__WXML_MUSTACHE_${Math.random().toString(36).slice(2)}_`
 
-function isWholeMustache(input: string): boolean {
+// True when the entire attribute value is a single `{{ ... }}` (trimmed). Treated like `style=""` — not linted as declarations.
+export function isWholeMustache(input: string): boolean {
   const trimmed = input.trim()
   return /^\{\{[\s\S]*\}\}$/u.test(trimmed)
 }
@@ -21,18 +22,15 @@ export function processMustacheStyle(styleValue: string): MustacheProcessResult 
 
   const replaced = styleValue.replace(MUSTACHE_RE, raw => {
     tokenId += 1
-    const placeholder = `__WXML_EXPR_${tokenId}__`
+    let suffix = 0
+    let placeholder = `${PLACEHOLDER_PREFIX}${tokenId}_${suffix}__`
+    while (styleValue.includes(placeholder)) {
+      suffix += 1
+      placeholder = `${PLACEHOLDER_PREFIX}${tokenId}_${suffix}__`
+    }
     tokens.push({ id: tokenId, raw, placeholder })
     return placeholder
   })
-
-  if (isWholeMustache(styleValue)) {
-    const placeholder = tokens[0]?.placeholder ?? '__WXML_EXPR_0__'
-    return {
-      cssText: `${INLINE_STYLE_PROP}: ${placeholder};`,
-      tokens,
-    }
-  }
 
   return {
     cssText: ensureSemicolon(replaced.trim()),

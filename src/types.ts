@@ -24,13 +24,13 @@ export interface MustacheProcessResult {
 }
 
 export interface WxmlStyleMappingEntry {
-  selector: string
+  rootId: number
   startOffset: number
   endOffset: number
   originalValue: string
 }
 
-export interface WxmlRootMeta {
+export interface WxmlDocumentMeta {
   source: string
   entries: WxmlStyleMappingEntry[]
 }

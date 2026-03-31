@@ -1,41 +1,54 @@
 import { Tokenizer } from 'htmlparser2'
 
-const STATE_IN_TAG_NAME = 3
-const STATE_SPECIAL_START_SEQUENCE = 23
-const CHAR_W = 0x77
-const CHAR_X = 0x78
-const CHAR_S = 0x73
+const STATE_IN_TAG_NAME = 3 // State.InTagName
+const STATE_SPECIAL_START_SEQUENCE = 23 // State.SpecialStartSequence
+const CHAR_W = 'w'.charCodeAt(0)
+const CHAR_X = 'x'.charCodeAt(0)
+const CHAR_S = 's'.charCodeAt(0)
 
-const WXS_END_SEQUENCE = new Uint8Array([0x3c, 0x2f, CHAR_W, CHAR_X, CHAR_S]) // </wxs
+// </wxs
+const WXS_END_SEQUENCE = new Uint8Array([
+  '<'.charCodeAt(0),
+  '/'.charCodeAt(0),
+  CHAR_W,
+  CHAR_X,
+  CHAR_S,
+])
 
-function isTagBoundary(charCode: number | undefined): boolean {
+function isTagBoundary(charCode: number | null | undefined): boolean {
   return (
-    charCode === undefined ||
-    charCode === 0x2f || // /
-    charCode === 0x3e || // >
-    charCode === 0x20 || // space
-    charCode === 0x09 || // tab
-    charCode === 0x0a || // \n
-    charCode === 0x0d || // \r
-    charCode === 0x0c // \f
+    charCode == null ||
+    charCode === '/'.charCodeAt(0) || // /
+    charCode === '>'.charCodeAt(0) || // >
+    charCode === ' '.charCodeAt(0) || // space
+    charCode === '\t'.charCodeAt(0) || // tab
+    charCode === '\n'.charCodeAt(0) || // \n
+    charCode === '\r'.charCodeAt(0) || // \r
+    charCode === '\f'.charCodeAt(0) // \f
   )
 }
 
-/**
- * htmlparser2 treats script/style as special raw-text tags.
- * Extend it so <wxs> is parsed the same way to avoid false tag/attr matches in JS code.
- */
+// Lowercase ASCII letter char-code for case-insensitive tag checks.
+function lowerCase(code: number): number {
+  return code | 0x20
+}
+
+// TODO:
+// htmlparser2 Tokenizer declares private state; subclassing needs a loose constructor type for TS.
 const BaseTokenizer = Tokenizer as unknown as new (...args: any[]) => any
 
 export class WxmlTokenizer extends BaseTokenizer {
   stateBeforeTagName(c: number): void {
     const self = this as any
-    const lower = c | 0x20
-    const x = self.buffer.charCodeAt(self.index + 1) | 0x20
-    const s = self.buffer.charCodeAt(self.index + 2) | 0x20
+    const w = lowerCase(c)
+    const x = lowerCase(self.buffer.charCodeAt(self.index + 1))
+    const s = lowerCase(self.buffer.charCodeAt(self.index + 2))
     const boundary = self.buffer.charCodeAt(self.index + 3)
 
-    if (lower === CHAR_W && x === CHAR_X && s === CHAR_S && isTagBoundary(boundary)) {
+    // If we are entering a <wxs ...> tag, switch to htmlparser2's "special/raw-text" mode
+    // (similar to <script>): treat everything inside as plain text until </wxs>,
+    // so style-like text in JS code won't be parsed as real HTML attributes/tags.
+    if (w === CHAR_W && x === CHAR_X && s === CHAR_S && isTagBoundary(boundary)) {
       self.sectionStart = self.index
       self.isSpecial = true
       self.currentSequence = WXS_END_SEQUENCE
@@ -44,7 +57,6 @@ export class WxmlTokenizer extends BaseTokenizer {
       return
     }
 
-    // Keep default behavior for all non-wxs tags.
     super.stateBeforeTagName(c)
   }
 
