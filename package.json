@@ -53,13 +53,15 @@
     "lint:prettier": "prettier . --cache --write --log-level silent",
     "typecheck": "tsc --noEmit",
     "publint": "publint",
-    "prepare": "husky"
+    "prepare": "husky",
+    "github:release": "tfr"
   },
   "dependencies": {
     "htmlparser2": "^12.0.0",
     "postcss": "^8.5.8"
   },
   "devDependencies": {
+    "@tofrankie/action": "^0.0.5",
     "@tofrankie/eslint": "^0.0.17",
     "@tofrankie/prettier": "^0.0.11",
     "@tofrankie/tsconfig": "^0.0.4",
