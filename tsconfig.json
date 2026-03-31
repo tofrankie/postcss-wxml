@@ -1,0 +1,7 @@
+{
+  "extends": "@tofrankie/tsconfig/node.lib.tsdown.json",
+  "compilerOptions": {
+    "rootDir": "."
+  },
+  "include": ["src/**/*.ts", "tsdown.config.ts", "eslint.config.js", "prettier.config.js"]
+}
