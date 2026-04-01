@@ -28,6 +28,24 @@ describe('stringify', () => {
     expect(output).toContain('color: {{ color }}')
   })
 
+  it('声明 value 内换行（含连续换行）在 stringify 时折叠为单个空格', () => {
+    const input = `<view style="background: url('https://example.com/x.png')
+      center center no-repeat;
+
+
+    background-size: 100% 100%;"></view>`
+    const doc = parse(input)
+    const output = doc.toString(syntax)
+
+    const m = output.match(/style="([^"]*)"/)
+    expect(m?.[1]).toBeDefined()
+    expect(m![1]).toMatch(
+      /background: url\('https:\/\/example\.com\/x\.png'\)\s+center center no-repeat/
+    )
+    expect(m![1]).toContain('background-size: 100% 100%')
+    expect(m![1]).not.toMatch(/[\r\n]/)
+  })
+
   it('移除 document 子节点后 stringify 不误套样式', () => {
     const input = '<view style="color: red;"></view><view style="font-size: 10px;"></view>'
     const doc = parse(input)

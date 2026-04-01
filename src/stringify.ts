@@ -50,14 +50,24 @@ function serializeRootToStyleValue(root: Root): string {
     if (node.type === 'decl') {
       const decl = node as Declaration
       const raw = (decl.raws as { textRaw?: string }).textRaw
-      if (typeof raw === 'string') parts.push(raw)
-      else parts.push(`${decl.prop}: ${decl.value}`)
+      if (typeof raw === 'string') {
+        parts.push(raw)
+      } else {
+        parts.push(`${decl.prop}: ${collapseNewlinesInDeclValue(decl.value)}`)
+      }
     } else if (node.type === 'comment') {
       const comment = node as Comment
       const raw = (comment.raws as { textRaw?: string }).textRaw
-      if (typeof raw === 'string') parts.push(raw)
-      else parts.push(`/*${comment.text}*/`)
+      if (typeof raw === 'string') {
+        parts.push(raw)
+      } else {
+        parts.push(`/*${comment.text}*/`)
+      }
     }
   }
   return parts.join('; ').trim()
+}
+
+function collapseNewlinesInDeclValue(value: string): string {
+  return value.replace(/[\r\n]+/g, ' ')
 }
