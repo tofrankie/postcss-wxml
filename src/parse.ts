@@ -1,5 +1,5 @@
 import type { Document, ProcessOptions, Root } from 'postcss'
-import type { WxmlDocumentMeta } from './types'
+import type { Position, WxmlDocumentMeta } from './types'
 import postcss from 'postcss'
 import { extractWxmlStyles } from './extract-wxml-styles'
 import { isWholeMustache, processMustacheStyle, restoreMustacheValue } from './mustache'
@@ -8,17 +8,6 @@ type ParseOptions = Pick<ProcessOptions, 'document' | 'from' | 'map'>
 
 interface RootRawsWithId {
   postcssWxmlRootId?: number
-}
-
-function restoreMustacheInRootValues(
-  root: Root,
-  tokens: ReturnType<typeof processMustacheStyle>['tokens']
-): void {
-  if (tokens.length === 0) return
-
-  root.walkDecls(decl => {
-    decl.value = restoreMustacheValue(decl.value, tokens)
-  })
 }
 
 export function parse(css: string | { toString: () => string }, opts: ParseOptions = {}): Document {
@@ -52,6 +41,13 @@ export function parse(css: string | { toString: () => string }, opts: ParseOptio
     nextRootId += 1
     ;(fragmentRoot.raws as RootRawsWithId).postcssWxmlRootId = rootId
     restoreMustacheInRootValues(fragmentRoot, normalized.tokens)
+
+    // Remap source positions
+    offsetNodeSource(fragmentRoot, style.start, input)
+    fragmentRoot.walk(node => {
+      offsetNodeSource(node, style.start, input)
+    })
+
     document.append(fragmentRoot)
     meta.entries.push({
       rootId,
@@ -63,4 +59,38 @@ export function parse(css: string | { toString: () => string }, opts: ParseOptio
   ;(document.raws as unknown as { postcssWxml: WxmlDocumentMeta }).postcssWxml = meta
 
   return document
+}
+
+function restoreMustacheInRootValues(
+  root: Root,
+  tokens: ReturnType<typeof processMustacheStyle>['tokens']
+): void {
+  if (tokens.length === 0) return
+
+  root.walkDecls(decl => {
+    decl.value = restoreMustacheValue(decl.value, tokens)
+  })
+}
+
+function offsetNodeSource(
+  node: postcss.AnyNode | Root,
+  styleStart: Position,
+  docInput: postcss.Input
+): void {
+  const shift = (pos?: { offset?: number; line?: number; column?: number }) => {
+    if (!pos || typeof pos.line !== 'number' || typeof pos.column !== 'number') return
+    if (pos.line === 1) {
+      pos.column = pos.column - 1 + styleStart.column
+    }
+    pos.line = pos.line - 1 + styleStart.line
+    if (typeof pos.offset === 'number') {
+      pos.offset += styleStart.offset
+    }
+  }
+
+  if (node.source) {
+    node.source.input = docInput
+    shift(node.source.start)
+    shift(node.source.end)
+  }
 }

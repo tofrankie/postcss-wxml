@@ -6,13 +6,17 @@ type StringifyNode = Parameters<typeof postcss.stringify>[0]
 type StringifyBuilder = Parameters<typeof postcss.stringify>[1]
 type RootWithId = Root & { raws: { postcssWxmlRootId?: number } }
 
-function serializeRootToStyleValue(root: Root): string {
-  const decls = root.nodes?.filter(node => node.type === 'decl') ?? []
+export function stringify(node: StringifyNode, builder: StringifyBuilder): void {
+  if ((node as { type: string }).type === 'document') {
+    const document = node as Document
+    const meta = (document.raws as unknown as { postcssWxml?: WxmlDocumentMeta }).postcssWxml
+    if (meta?.source && Array.isArray(meta.entries)) {
+      builder(stringifyWxmlFromDocument(document, meta), document)
+      return
+    }
+  }
 
-  return decls
-    .map((declNode: { prop: string; value: string }) => `${declNode.prop}: ${declNode.value};`)
-    .join(' ')
-    .trim()
+  postcss.stringify(node, builder)
 }
 
 function stringifyWxmlFromDocument(document: Document, meta: WxmlDocumentMeta): string {
@@ -40,15 +44,11 @@ function stringifyWxmlFromDocument(document: Document, meta: WxmlDocumentMeta): 
   return result
 }
 
-export function stringify(node: StringifyNode, builder: StringifyBuilder): void {
-  if ((node as { type: string }).type === 'document') {
-    const document = node as Document
-    const meta = (document.raws as unknown as { postcssWxml?: WxmlDocumentMeta }).postcssWxml
-    if (meta?.source && Array.isArray(meta.entries)) {
-      builder(stringifyWxmlFromDocument(document, meta), document)
-      return
-    }
-  }
+function serializeRootToStyleValue(root: Root): string {
+  const decls = root.nodes?.filter(node => node.type === 'decl') ?? []
 
-  postcss.stringify(node, builder)
+  return decls
+    .map((declNode: { prop: string; value: string }) => `${declNode.prop}: ${declNode.value}`)
+    .join('; ')
+    .trim()
 }

@@ -1,0 +1,28 @@
+<wxs module="m1">
+  var style = "color: red;"
+  var a = "/>"
+  module.exports = { style: style }
+</wxs>
+
+<wxs src="./m2.wxs" module="m2" />
+
+<!-- <view style="color: blue;"></view> -->
+
+<view style="
+  font-size: 10rpx;
+  color: #000;
+">
+  Multi-line inline style
+</view>
+
+<view style="font-size: 10rpx; color: {{ color }};">
+  Mustache interpolation
+</view>
+
+<view style="background-image: url('{{ bg }}');">
+  Partial Mustache
+</view>
+
+<view style="{{ style }}">
+  Whole Mustache (ignored)
+</view>

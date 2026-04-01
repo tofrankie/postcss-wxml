@@ -2,22 +2,6 @@ import type { Position, WxmlInlineStyle } from './types'
 import { Parser } from 'htmlparser2'
 import { WxmlTokenizer } from './wxml-tokenizer'
 
-function toPosition(source: string, offset: number): Position {
-  let line = 1
-  let column = 1
-
-  for (let i = 0; i < offset; i += 1) {
-    if (source[i] === '\n') {
-      line += 1
-      column = 1
-    } else {
-      column += 1
-    }
-  }
-
-  return { offset, line, column }
-}
-
 export function extractWxmlStyles(source: string): WxmlInlineStyle[] {
   const styles: WxmlInlineStyle[] = []
   let currentTagName = 'view'
@@ -57,6 +41,7 @@ export function extractWxmlStyles(source: string): WxmlInlineStyle[] {
     },
     {
       decodeEntities: false,
+      recognizeSelfClosing: true,
       Tokenizer: WxmlTokenizer as any,
     }
   )
@@ -64,4 +49,20 @@ export function extractWxmlStyles(source: string): WxmlInlineStyle[] {
   parser.parseComplete(source)
 
   return styles
+}
+
+function toPosition(source: string, offset: number): Position {
+  let line = 1
+  let column = 1
+
+  for (let i = 0; i < offset; i += 1) {
+    if (source[i] === '\n') {
+      line += 1
+      column = 1
+    } else {
+      column += 1
+    }
+  }
+
+  return { offset, line, column }
 }

@@ -12,16 +12,27 @@ describe('parse', () => {
     expect(doc.source?.end).toEqual({ offset: 13, line: 1, column: 14 })
   })
 
-  it('parses plain inline style as a fragment root with decls', () => {
-    const doc = parse('<view style="font-size: 10rpx; color: #000;"></view>')
+  it('parses plain inline style as a fragment root with decls and correct source positions', () => {
+    const wxml = `<view style="
+      font-size: 10rpx;
+      color: #000;
+    "></view>`
+    const doc = parse(wxml)
     expect(doc.type).toBe('document')
     expect(doc.nodes.length).toBe(1)
     const fragment = doc.first
     expect(fragment?.type).toBe('root')
     if (!fragment || fragment.type !== 'root') return
     expect(fragment.nodes?.length).toBe(2)
-    expect(fragment.nodes?.[0]?.type).toBe('decl')
-    expect(fragment.nodes?.[1]?.type).toBe('decl')
+    const decl1 = fragment.nodes?.[0]
+    expect(decl1?.type).toBe('decl')
+    expect(decl1?.source?.start?.line).toBe(2)
+    expect(decl1?.source?.start?.column).toBe(7)
+
+    const decl2 = fragment.nodes?.[1]
+    expect(decl2?.type).toBe('decl')
+    expect(decl2?.source?.start?.line).toBe(3)
+    expect(decl2?.source?.start?.column).toBe(7)
   })
 
   it('parses declaration value with mustache', () => {
@@ -106,19 +117,19 @@ describe('parse', () => {
     const output = doc.toString(syntax)
 
     expect(output).toContain('<view>')
-    expect(output).toContain('style="font-size: 10rpx; color: #ff0000;"')
-    expect(output).toContain('style="font-size: 10rpx; color: {{ color }};"')
+    expect(output).toContain('style="font-size: 10rpx; color: #ff0000"')
+    expect(output).toContain('style="font-size: 10rpx; color: {{ color }}"')
     expect(output).toContain('style="{{ style }}"')
     expect(output).not.toContain('.wxml-inline-style-')
   })
 
   it('keeps literal text that looks like internal placeholder', () => {
-    const input = '<view style="content: __WXML_EXPR_1__; color: {{ color }};"></view>'
+    const input = '<view style="content: _W1________; color: {{ color }};"></view>'
     const doc = parse(input)
     const output = doc.toString(syntax)
 
-    expect(output).toContain('content: __WXML_EXPR_1__;')
-    expect(output).toContain('color: {{ color }};')
+    expect(output).toContain('content: _W1________;')
+    expect(output).toContain('color: {{ color }}')
   })
 
   it('stringify does not mis-apply styles after document node removal', () => {
@@ -128,6 +139,6 @@ describe('parse', () => {
     const output = doc.toString(syntax)
 
     expect(output).toContain('<view style="color: red;"></view>')
-    expect(output).toContain('<view style="font-size: 10px;"></view>')
+    expect(output).toContain('<view style="font-size: 10px"></view>')
   })
 })
