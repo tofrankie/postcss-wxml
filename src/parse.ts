@@ -2,7 +2,12 @@ import type { Document, ProcessOptions, Root } from 'postcss'
 import type { Position, WxmlDocumentMeta } from './types'
 import postcss from 'postcss'
 import { extractWxmlStyles } from './extract-wxml-styles'
-import { isWholeMustache, processMustacheStyle, restoreMustacheValue } from './mustache'
+import {
+  isWholeMustache,
+  processMustacheStyle,
+  restoreMustacheValue,
+  stripEmptyMustaches,
+} from './mustache'
 
 type ParseOptions = Pick<ProcessOptions, 'document' | 'from' | 'map'>
 
@@ -35,17 +40,21 @@ export function parse(css: string | { toString: () => string }, opts: ParseOptio
     if (!style.value.trim()) return
     if (isWholeMustache(style.value)) return
 
-    const normalized = processMustacheStyle(style.value)
+    const { stripped: styleForParse, strippedOffsetToOriginal } = stripEmptyMustaches(style.value)
+    if (!styleForParse.trim()) return
+    if (isWholeMustache(styleForParse)) return
+
+    const normalized = processMustacheStyle(styleForParse)
     const fragmentRoot = postcss.parse(normalized.cssText, { from: opts.from })
     const rootId = nextRootId
     nextRootId += 1
     ;(fragmentRoot.raws as RootRawsWithId).postcssWxmlRootId = rootId
     restoreMustacheInRootValues(fragmentRoot, normalized.tokens)
 
-    // Remap source positions
-    offsetNodeSource(fragmentRoot, style.start, input)
+    // 重映射源码位置
+    offsetNodeSource(fragmentRoot, style.start, input, strippedOffsetToOriginal)
     fragmentRoot.walk(node => {
-      offsetNodeSource(node, style.start, input)
+      offsetNodeSource(node, style.start, input, strippedOffsetToOriginal)
     })
 
     document.append(fragmentRoot)
@@ -67,7 +76,22 @@ function restoreMustacheInRootValues(
 ): void {
   if (tokens.length === 0) return
 
+  root.walkComments(comment => {
+    const placeholder = `/*${comment.text}*/`
+    const token = tokens.find(t => t.placeholder === placeholder)
+    if (token) {
+      ;(comment.raws as { textRaw?: string }).textRaw = token.raw
+    }
+  })
+
   root.walkDecls(decl => {
+    const combined = `${decl.prop}:${decl.value}`
+    const declSlot = tokens.find(t => t.placeholder === combined && !t.placeholder.startsWith('/*'))
+    if (declSlot) {
+      ;(decl.raws as { textRaw?: string }).textRaw = declSlot.raw
+      return
+    }
+    decl.prop = restoreMustacheValue(decl.prop, tokens)
     decl.value = restoreMustacheValue(decl.value, tokens)
   })
 }
@@ -75,22 +99,27 @@ function restoreMustacheInRootValues(
 function offsetNodeSource(
   node: postcss.AnyNode | Root,
   styleStart: Position,
-  docInput: postcss.Input
+  docInput: postcss.Input,
+  strippedOffsetToOriginal?: (strippedOffset: number) => number
 ): void {
-  const shift = (pos?: { offset?: number; line?: number; column?: number }) => {
-    if (!pos || typeof pos.line !== 'number' || typeof pos.column !== 'number') return
-    if (pos.line === 1) {
-      pos.column = pos.column - 1 + styleStart.column
+  const mapPos = (pos?: { offset?: number; line?: number; column?: number }) => {
+    if (!pos || typeof pos.offset !== 'number') return
+    let origInValue = pos.offset
+    if (strippedOffsetToOriginal) {
+      origInValue = strippedOffsetToOriginal(origInValue)
     }
-    pos.line = pos.line - 1 + styleStart.line
-    if (typeof pos.offset === 'number') {
-      pos.offset += styleStart.offset
+    const absOffset = styleStart.offset + origInValue
+    const mapped = docInput.fromOffset(absOffset)
+    if (mapped) {
+      pos.line = mapped.line
+      pos.column = mapped.col
+      pos.offset = absOffset
     }
   }
 
   if (node.source) {
     node.source.input = docInput
-    shift(node.source.start)
-    shift(node.source.end)
+    mapPos(node.source.start)
+    mapPos(node.source.end)
   }
 }

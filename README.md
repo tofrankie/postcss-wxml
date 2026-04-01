@@ -2,7 +2,7 @@
 
 PostCSS syntax for parsing [WXML](https://developers.weixin.qq.com/miniprogram/en/dev/reference/wxml/).
 
-> [!WARNING]
+> [!IMPORTANT]
 > Before 1.0.0, releases may include breaking changes. Review [CHANGELOG](CHANGELOG.md) before upgrading.
 
 > [!NOTE]
@@ -21,3 +21,7 @@ export default {
   rules: {},
 }
 ```
+
+## Acknowledgments
+
+Thanks to [postcss-html](https://github.com/ota-meshi/postcss-html) for prior art and inspiration.

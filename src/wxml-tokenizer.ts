@@ -6,7 +6,7 @@ const CHAR_W = 'w'.charCodeAt(0)
 const CHAR_X = 'x'.charCodeAt(0)
 const CHAR_S = 's'.charCodeAt(0)
 
-// </wxs
+// 匹配结束序列 `</wxs`
 const WXS_END_SEQUENCE = new Uint8Array([
   '<'.charCodeAt(0),
   '/'.charCodeAt(0),
@@ -28,13 +28,13 @@ function isTagBoundary(charCode: number | null | undefined): boolean {
   )
 }
 
-// Lowercase ASCII letter char-code for case-insensitive tag checks.
+// 小写 ASCII 字母的 char code，用于不区分大小写的标签判断。
 function lowerCase(code: number): number {
   return code | 0x20
 }
 
 // TODO:
-// htmlparser2 Tokenizer declares private state; subclassing needs a loose constructor type for TS.
+// htmlparser2 Tokenizer 将状态设为 private；子类化在 TS 中需要宽松的构造函数类型。
 const BaseTokenizer = Tokenizer as unknown as new (...args: any[]) => any
 
 export class WxmlTokenizer extends BaseTokenizer {
@@ -45,9 +45,8 @@ export class WxmlTokenizer extends BaseTokenizer {
     const s = lowerCase(self.buffer.charCodeAt(self.index + 2))
     const boundary = self.buffer.charCodeAt(self.index + 3)
 
-    // If we are entering a <wxs ...> tag, switch to htmlparser2's "special/raw-text" mode
-    // (similar to <script>): treat everything inside as plain text until </wxs>,
-    // so style-like text in JS code won't be parsed as real HTML attributes/tags.
+    // 进入 <wxs ...> 时切换到 htmlparser2 的 special/raw-text 模式，（类似 <script>）：直到 </wxs> 之前都当作纯文本，
+    // 避免 JS 里像样式一样的字符串被当成真实 HTML 属性/标签解析。
     if (w === CHAR_W && x === CHAR_X && s === CHAR_S && isTagBoundary(boundary)) {
       self.sectionStart = self.index
       self.isSpecial = true

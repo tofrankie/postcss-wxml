@@ -1,4 +1,4 @@
-import type { Document, Root } from 'postcss'
+import type { Comment, Declaration, Document, Root } from 'postcss'
 import type { WxmlDocumentMeta } from './types'
 import postcss from 'postcss'
 
@@ -45,10 +45,19 @@ function stringifyWxmlFromDocument(document: Document, meta: WxmlDocumentMeta): 
 }
 
 function serializeRootToStyleValue(root: Root): string {
-  const decls = root.nodes?.filter(node => node.type === 'decl') ?? []
-
-  return decls
-    .map((declNode: { prop: string; value: string }) => `${declNode.prop}: ${declNode.value}`)
-    .join('; ')
-    .trim()
+  const parts: string[] = []
+  for (const node of root.nodes ?? []) {
+    if (node.type === 'decl') {
+      const decl = node as Declaration
+      const raw = (decl.raws as { textRaw?: string }).textRaw
+      if (typeof raw === 'string') parts.push(raw)
+      else parts.push(`${decl.prop}: ${decl.value}`)
+    } else if (node.type === 'comment') {
+      const comment = node as Comment
+      const raw = (comment.raws as { textRaw?: string }).textRaw
+      if (typeof raw === 'string') parts.push(raw)
+      else parts.push(`/*${comment.text}*/`)
+    }
+  }
+  return parts.join('; ').trim()
 }

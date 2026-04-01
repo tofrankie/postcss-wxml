@@ -41,12 +41,12 @@ function serializeNode(node: AnyNode) {
   return base
 }
 
-describe('fixtures', () => {
+describe('fixtures 快照', () => {
   const fixturesDir = path.join(__dirname, 'fixtures')
   const files = fs.readdirSync(fixturesDir).filter((file: string) => file.endsWith('.wxml'))
 
   for (const file of files) {
-    it(`parses ${file} and matches snapshot`, () => {
+    it(`解析 ${file} 并与快照一致`, () => {
       const wxml = fs.readFileSync(path.join(fixturesDir, file), 'utf-8')
       const doc = parse(wxml, { from: file })
 

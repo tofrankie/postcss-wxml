@@ -21,11 +21,11 @@ export function extractWxmlStyles(source: string): WxmlInlineStyle[] {
         let valueEndOffset: number
 
         if (quote === '"' || quote === "'") {
-          // htmlparser2 endIndex for quoted attributes points one char after the closing quote.
+          // 带引号属性：htmlparser2 的 endIndex 在结束引号之后一位。
           valueStartOffset = endIndex - value.length - 1
           valueEndOffset = endIndex - 1
         } else {
-          // For unquoted attributes, endIndex already points at the end of attribute value section.
+          // 无引号属性：endIndex 已在属性值区段末尾。
           valueStartOffset = endIndex - value.length
           valueEndOffset = endIndex
         }

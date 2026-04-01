@@ -1,7 +1,7 @@
 {
   "name": "@tofrankie/postcss-wxml",
   "type": "module",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "packageManager": "pnpm@10.32.1",
   "description": "PostCSS syntax for parsing WXML",
   "author": "Frankie <1426203851@qq.com> (https://github.com/tofrankie)",

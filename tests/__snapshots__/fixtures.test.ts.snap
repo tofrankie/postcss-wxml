@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`fixtures > parses complex.wxml and matches snapshot 1`] = `
+exports[`fixtures 快照 > 解析 complex.wxml 并与快照一致 1`] = `
 {
   "nodes": [
     {
@@ -9,7 +9,7 @@ exports[`fixtures > parses complex.wxml and matches snapshot 1`] = `
           "prop": "font-size",
           "source": {
             "end": {
-              "column": 19,
+              "column": 20,
               "line": 12,
               "offset": 219,
             },
@@ -26,7 +26,7 @@ exports[`fixtures > parses complex.wxml and matches snapshot 1`] = `
           "prop": "color",
           "source": {
             "end": {
-              "column": 14,
+              "column": 15,
               "line": 13,
               "offset": 234,
             },
@@ -60,7 +60,7 @@ exports[`fixtures > parses complex.wxml and matches snapshot 1`] = `
           "prop": "font-size",
           "source": {
             "end": {
-              "column": 30,
+              "column": 31,
               "line": 18,
               "offset": 303,
             },
@@ -77,7 +77,7 @@ exports[`fixtures > parses complex.wxml and matches snapshot 1`] = `
           "prop": "color",
           "source": {
             "end": {
-              "column": 50,
+              "column": 51,
               "line": 18,
               "offset": 323,
             },
@@ -111,7 +111,7 @@ exports[`fixtures > parses complex.wxml and matches snapshot 1`] = `
           "prop": "background-image",
           "source": {
             "end": {
-              "column": 47,
+              "column": 48,
               "line": 22,
               "offset": 407,
             },
@@ -156,7 +156,7 @@ exports[`fixtures > parses complex.wxml and matches snapshot 1`] = `
 }
 `;
 
-exports[`fixtures > parses wxs-self-closing.wxml and matches snapshot 1`] = `
+exports[`fixtures 快照 > 解析 wxs-self-closing.wxml 并与快照一致 1`] = `
 {
   "nodes": [
     {
@@ -165,7 +165,7 @@ exports[`fixtures > parses wxs-self-closing.wxml and matches snapshot 1`] = `
           "prop": "color",
           "source": {
             "end": {
-              "column": 24,
+              "column": 25,
               "line": 2,
               "offset": 45,
             },

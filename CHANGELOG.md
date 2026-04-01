@@ -1,5 +1,10 @@
 # Changelog
 
+## postcss-wxml@0.0.3 (2026-04-01)
+
+- fix: support interpolating ternary operator
+- test: add more test cases
+
 ## postcss-wxml@0.0.2 (2026-04-01)
 
 - **core**: parse style attribute with mustache interpolation.
