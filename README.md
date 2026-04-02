@@ -21,4 +21,4 @@ export default {
 
 ## Acknowledgments
 
-Thanks to [postcss-html](https://github.com/ota-meshi/postcss-html) for prior art and inspiration.
+Thanks to [postcss-html](https://github.com/ota-meshi/postcss-html) for inspiration.
