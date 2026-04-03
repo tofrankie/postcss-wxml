@@ -1,5 +1,9 @@
 # Changelog
 
+## postcss-wxml@0.0.5 (2026-04-04)
+
+- Update documentation.
+
 ## postcss-wxml@0.0.4 (2026-04-02)
 
 - fix: support collapsing newlines in declaration values when stringifying.

@@ -7,13 +7,7 @@ const CHAR_X = 'x'.charCodeAt(0)
 const CHAR_S = 's'.charCodeAt(0)
 
 // 匹配结束序列 `</wxs`
-const WXS_END_SEQUENCE = new Uint8Array([
-  '<'.charCodeAt(0),
-  '/'.charCodeAt(0),
-  CHAR_W,
-  CHAR_X,
-  CHAR_S,
-])
+const WXS_END_SEQUENCE = new Uint8Array(['<'.charCodeAt(0), '/'.charCodeAt(0), CHAR_W, CHAR_X, CHAR_S])
 
 function isTagBoundary(charCode: number | null | undefined): boolean {
   return (

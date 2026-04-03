@@ -39,9 +39,7 @@ describe('stringify', () => {
 
     const m = output.match(/style="([^"]*)"/)
     expect(m?.[1]).toBeDefined()
-    expect(m![1]).toMatch(
-      /background: url\('https:\/\/example\.com\/x\.png'\)\s+center center no-repeat/
-    )
+    expect(m![1]).toMatch(/background: url\('https:\/\/example\.com\/x\.png'\)\s+center center no-repeat/)
     expect(m![1]).toContain('background-size: 100% 100%')
     expect(m![1]).not.toMatch(/[\r\n]/)
   })
