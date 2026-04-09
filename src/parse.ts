@@ -2,7 +2,12 @@ import type { Document, ProcessOptions, Root } from 'postcss'
 import type { Position, WxmlDocumentMeta } from './types'
 import postcss from 'postcss'
 import { extractWxmlStyles } from './extract-wxml-styles'
-import { isWholeMustache, processMustacheStyle, restoreMustacheValue, stripEmptyMustaches } from './mustache'
+import {
+  isWholeMustache,
+  processMustacheStyle,
+  restoreMustacheValue,
+  stripEmptyMustaches,
+} from './mustache'
 
 type ParseOptions = Pick<ProcessOptions, 'document' | 'from' | 'map'>
 
@@ -65,7 +70,10 @@ export function parse(css: string | { toString: () => string }, opts: ParseOptio
   return document
 }
 
-function restoreMustacheInRootValues(root: Root, tokens: ReturnType<typeof processMustacheStyle>['tokens']): void {
+function restoreMustacheInRootValues(
+  root: Root,
+  tokens: ReturnType<typeof processMustacheStyle>['tokens']
+): void {
   if (tokens.length === 0) return
 
   root.walkComments(comment => {

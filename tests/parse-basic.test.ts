@@ -40,7 +40,9 @@ describe('parse (basic)', () => {
   })
 
   it('多个 style 属性对应多个 fragment root', () => {
-    const doc = parse('<view style="font-size: 10rpx;"></view><text style="color: {{ color }};"></text>')
+    const doc = parse(
+      '<view style="font-size: 10rpx;"></view><text style="color: {{ color }};"></text>'
+    )
     expect(doc.nodes.length).toBe(2)
   })
 

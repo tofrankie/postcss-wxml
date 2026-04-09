@@ -94,7 +94,11 @@ export function restoreMustacheValue(value: string, tokens: MustacheToken[]): st
   return restored
 }
 
-function isStandaloneDeclarationSlot(styleValue: string, mustacheStart: number, rawLength: number): boolean {
+function isStandaloneDeclarationSlot(
+  styleValue: string,
+  mustacheStart: number,
+  rawLength: number
+): boolean {
   let i = mustacheStart - 1
   while (i >= 0 && /\s/.test(styleValue[i]!)) i -= 1
   const beforeBoundary = i < 0 || styleValue[i] === ';'
